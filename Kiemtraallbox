@@ -1,0 +1,34 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Sync = require(
+    ReplicatedStorage
+        :WaitForChild("Database")
+        :WaitForChild("Sync")
+)
+
+local NewShop = Sync.NewShop
+
+print("========== GUN / BOX SEARCH ==========")
+
+for id, data in pairs(NewShop) do
+    if data.Type == "MysteryBox" then
+        print("================================")
+        print("ID:", id)
+
+        if data.Price then
+            print("PRICE:")
+
+            for currency, amount in pairs(data.Price) do
+                print("   ", currency, "=", amount)
+            end
+        end
+
+        print("Type =", data.Type)
+
+        if data.LayoutOrder then
+            print("LayoutOrder =", data.LayoutOrder)
+        end
+    end
+end
+
+print("========== END ==========")
