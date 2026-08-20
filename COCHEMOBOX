@@ -1,0 +1,13 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shop = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("Shop")
+
+local result = Shop.OpenCrate:InvokeServer(
+    "GunBox3",
+    "MysteryBox",
+    "Coins"
+)
+
+print("RESULT:", result)
