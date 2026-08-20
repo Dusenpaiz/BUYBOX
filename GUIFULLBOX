@@ -1,0 +1,638 @@
+--==================================================
+-- MYSTERY BOX OPENER GUI
+-- DRAGGABLE + HIGH DISPLAY ORDER
+--==================================================
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+
+--==================================================
+-- SHOP REMOTES
+--==================================================
+
+local Shop = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("Shop")
+
+--==================================================
+-- BOX LIST
+--==================================================
+
+local Boxes = {
+    {Name = "Gun Box #1", ID = "GunBox1"},
+    {Name = "Gun Box #2", ID = "GunBox2"},
+    {Name = "Gun Box #3", ID = "GunBox3"},
+
+    {Name = "Knife Box #1", ID = "KnifeBox1"},
+    {Name = "Knife Box #2", ID = "KnifeBox2"},
+    {Name = "Knife Box #3", ID = "KnifeBox3"},
+    {Name = "Knife Box #4", ID = "KnifeBox4"},
+    {Name = "Knife Box #5", ID = "KnifeBox5"},
+
+    {Name = "Mystery Box #1", ID = "MysteryBox1"},
+    {Name = "Mystery Box #2", ID = "MysteryBox2"},
+
+    {Name = "MLG Box", ID = "MLG Box"},
+
+    {
+        Name = "Summer 2026 Box",
+        ID = "Summer2026Box",
+        SummerOnly = true
+    }
+}
+
+--==================================================
+-- DELETE OLD GUI
+--==================================================
+
+pcall(function()
+    local old = Player.PlayerGui:FindFirstChild("MysteryBoxOpener")
+    if old then
+        old:Destroy()
+    end
+end)
+
+--==================================================
+-- SCREEN GUI
+--==================================================
+
+local gui = Instance.new("ScreenGui")
+
+gui.Name = "MysteryBoxOpener"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = false
+
+-- ưu tiên hiển thị cao
+gui.DisplayOrder = 999999
+
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+gui.Parent = Player:WaitForChild("PlayerGui")
+
+--==================================================
+-- MAIN
+--==================================================
+
+local main = Instance.new("Frame")
+
+main.Name = "Main"
+
+main.Size = UDim2.new(0, 300, 0, 450)
+
+main.Position = UDim2.new(
+    0.5,
+    -150,
+    0.5,
+    -225
+)
+
+main.BackgroundColor3 = Color3.fromRGB(
+    30,
+    30,
+    35
+)
+
+main.BorderSizePixel = 0
+main.Active = true
+
+main.ZIndex = 100
+
+main.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = main
+
+--==================================================
+-- TITLE BAR
+--==================================================
+
+local titleBar = Instance.new("Frame")
+
+titleBar.Name = "TitleBar"
+
+titleBar.Size = UDim2.new(
+    1,
+    0,
+    0,
+    45
+)
+
+titleBar.BackgroundColor3 = Color3.fromRGB(
+    45,
+    45,
+    55
+)
+
+titleBar.BorderSizePixel = 0
+titleBar.Active = true
+
+titleBar.ZIndex = 101
+
+titleBar.Parent = main
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+--==================================================
+-- TITLE
+--==================================================
+
+local title = Instance.new("TextLabel")
+
+title.Size = UDim2.new(
+    1,
+    -50,
+    1,
+    0
+)
+
+title.Position = UDim2.new(
+    0,
+    10,
+    0,
+    0
+)
+
+title.BackgroundTransparency = 1
+
+title.Text = "MYSTERY BOX OPENER"
+
+title.TextColor3 = Color3.fromRGB(
+    255,
+    255,
+    255
+)
+
+title.TextSize = 16
+
+title.Font = Enum.Font.GothamBold
+
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+title.ZIndex = 102
+
+title.Parent = titleBar
+
+--==================================================
+-- MINIMIZE BUTTON
+--==================================================
+
+local minimize = Instance.new("TextButton")
+
+minimize.Size = UDim2.new(
+    0,
+    40,
+    1,
+    0
+)
+
+minimize.Position = UDim2.new(
+    1,
+    -40,
+    0,
+    0
+)
+
+minimize.BackgroundTransparency = 1
+
+minimize.Text = "−"
+
+minimize.TextColor3 = Color3.fromRGB(
+    255,
+    255,
+    255
+)
+
+minimize.TextSize = 25
+
+minimize.Font = Enum.Font.GothamBold
+
+minimize.ZIndex = 103
+
+minimize.Parent = titleBar
+
+--==================================================
+-- CONTENT
+--==================================================
+
+local content = Instance.new("Frame")
+
+content.Name = "Content"
+
+content.Size = UDim2.new(
+    1,
+    0,
+    1,
+    -45
+)
+
+content.Position = UDim2.new(
+    0,
+    0,
+    0,
+    45
+)
+
+content.BackgroundTransparency = 1
+
+content.ZIndex = 101
+
+content.Parent = main
+
+--==================================================
+-- CURRENCY
+--==================================================
+
+local currencies = {
+    "Coins",
+    "Gems",
+    "Key",
+    "SummerKey2026"
+}
+
+local currencyIndex = 1
+local currency = currencies[currencyIndex]
+
+local currencyButton = Instance.new("TextButton")
+
+currencyButton.Size = UDim2.new(
+    1,
+    -20,
+    0,
+    38
+)
+
+currencyButton.Position = UDim2.new(
+    0,
+    10,
+    0,
+    10
+)
+
+currencyButton.BackgroundColor3 = Color3.fromRGB(
+    55,
+    55,
+    65
+)
+
+currencyButton.BorderSizePixel = 0
+
+currencyButton.Text = "Currency: " .. currency
+
+currencyButton.TextColor3 = Color3.fromRGB(
+    255,
+    255,
+    255
+)
+
+currencyButton.TextSize = 14
+
+currencyButton.Font = Enum.Font.GothamBold
+
+currencyButton.ZIndex = 102
+
+currencyButton.Parent = content
+
+local currencyCorner = Instance.new("UICorner")
+currencyCorner.CornerRadius = UDim.new(0, 7)
+currencyCorner.Parent = currencyButton
+
+currencyButton.MouseButton1Click:Connect(function()
+
+    currencyIndex += 1
+
+    if currencyIndex > #currencies then
+        currencyIndex = 1
+    end
+
+    currency = currencies[currencyIndex]
+
+    currencyButton.Text = "Currency: " .. currency
+
+end)
+
+--==================================================
+-- STATUS
+--==================================================
+
+local status = Instance.new("TextLabel")
+
+status.Size = UDim2.new(
+    1,
+    -20,
+    0,
+    30
+)
+
+status.Position = UDim2.new(
+    0,
+    10,
+    0,
+    50
+)
+
+status.BackgroundTransparency = 1
+
+status.Text = "Chọn box để mở"
+
+status.TextColor3 = Color3.fromRGB(
+    220,
+    220,
+    220
+)
+
+status.TextSize = 13
+
+status.Font = Enum.Font.Gotham
+
+status.ZIndex = 102
+
+status.Parent = content
+
+--==================================================
+-- SCROLL
+--==================================================
+
+local scroll = Instance.new("ScrollingFrame")
+
+scroll.Size = UDim2.new(
+    1,
+    -20,
+    1,
+    -90
+)
+
+scroll.Position = UDim2.new(
+    0,
+    10,
+    0,
+    85
+)
+
+scroll.BackgroundTransparency = 1
+
+scroll.BorderSizePixel = 0
+
+scroll.ScrollBarThickness = 5
+
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+scroll.ZIndex = 102
+
+scroll.Parent = content
+
+local layout = Instance.new("UIListLayout")
+
+layout.Padding = UDim.new(0, 6)
+
+layout.Parent = scroll
+
+layout:GetPropertyChangedSignal(
+    "AbsoluteContentSize"
+):Connect(function()
+
+    scroll.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        layout.AbsoluteContentSize.Y + 10
+    )
+
+end)
+
+--==================================================
+-- OPEN BOX
+--==================================================
+
+local opening = false
+
+local function OpenBox(box)
+
+    if opening then
+        status.Text = "Đang xử lý..."
+        return
+    end
+
+    opening = true
+
+    status.Text =
+        "Đang mở: "
+        .. box.Name
+        .. " | "
+        .. currency
+
+    local success, result = pcall(function()
+
+        return Shop.OpenCrate:InvokeServer(
+            box.ID,
+            "MysteryBox",
+            currency
+        )
+
+    end)
+
+    if success then
+
+        if result then
+
+            print("BOX:", box.ID)
+            print("CURRENCY:", currency)
+            print("RESULT:", result)
+
+            status.Text =
+                "Nhận được: "
+                .. tostring(result)
+
+        else
+
+            status.Text =
+                "Không thể mở hoặc không đủ currency"
+
+        end
+
+    else
+
+        warn("OPEN ERROR:", result)
+
+        status.Text = "Lỗi: " .. tostring(result)
+
+    end
+
+    opening = false
+
+end
+
+--==================================================
+-- CREATE BOX BUTTONS
+--==================================================
+
+for _, box in ipairs(Boxes) do
+
+    local button = Instance.new("TextButton")
+
+    button.Size = UDim2.new(
+        1,
+        -5,
+        0,
+        40
+    )
+
+    button.BackgroundColor3 = Color3.fromRGB(
+        55,
+        55,
+        65
+    )
+
+    button.BorderSizePixel = 0
+
+    button.Text = box.Name
+
+    button.TextColor3 = Color3.fromRGB(
+        255,
+        255,
+        255
+    )
+
+    button.TextSize = 14
+
+    button.Font = Enum.Font.GothamBold
+
+    button.ZIndex = 103
+
+    button.Parent = scroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 7)
+    corner.Parent = button
+
+    button.MouseButton1Click:Connect(function()
+        OpenBox(box)
+    end)
+
+end
+
+--==================================================
+-- MINIMIZE / RESTORE
+--==================================================
+
+local minimized = false
+local normalSize = main.Size
+
+minimize.MouseButton1Click:Connect(function()
+
+    minimized = not minimized
+
+    if minimized then
+
+        content.Visible = false
+
+        main.Size = UDim2.new(
+            0,
+            300,
+            0,
+            45
+        )
+
+        minimize.Text = "+"
+
+    else
+
+        content.Visible = true
+
+        main.Size = normalSize
+
+        minimize.Text = "−"
+
+    end
+
+end)
+
+--==================================================
+-- DRAG SYSTEM
+-- PC + MOBILE
+--==================================================
+
+local dragging = false
+local dragStart
+local startPos
+
+local function updateDrag(input)
+
+    local delta =
+        input.Position
+        - dragStart
+
+    main.Position = UDim2.new(
+
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+
+    )
+
+end
+
+titleBar.InputBegan:Connect(function(input)
+
+    if input.UserInputType
+        == Enum.UserInputType.MouseButton1
+
+        or input.UserInputType
+        == Enum.UserInputType.Touch
+    then
+
+        dragging = true
+
+        dragStart = input.Position
+
+        startPos = main.Position
+
+        input.Changed:Connect(function()
+
+            if input.UserInputState
+                == Enum.UserInputState.End
+            then
+
+                dragging = false
+
+            end
+
+        end)
+
+    end
+
+end)
+
+titleBar.InputChanged:Connect(function(input)
+
+    if input.UserInputType
+        == Enum.UserInputType.MouseMovement
+
+        or input.UserInputType
+        == Enum.UserInputType.Touch
+    then
+
+        UserInputService.InputChanged:Connect(function(inputChanged)
+
+            if inputChanged == input
+                and dragging
+            then
+
+                updateDrag(inputChanged)
+
+            end
+
+        end)
+
+    end
+
+end)
+
+print("Mystery Box Opener Loaded")
