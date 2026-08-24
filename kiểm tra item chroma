@@ -1,0 +1,139 @@
+--========================================================
+-- MYSTERY BOX CHROMA RELATION FINDER
+-- Tự dừng bản cũ
+--========================================================
+
+pcall(function()
+    if _G.ChromaFinder_Stop then
+        _G.ChromaFinder_Stop()
+    end
+end)
+
+local stopped = false
+
+_G.ChromaFinder_Stop = function()
+    stopped = true
+end
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Sync = require(
+    ReplicatedStorage
+        :WaitForChild("Database")
+        :WaitForChild("Sync")
+)
+
+local MysteryBox = Sync.MysteryBox
+local Item = Sync.Item
+
+local function contains(value, text)
+    return string.find(
+        string.lower(tostring(value)),
+        string.lower(text),
+        1,
+        true
+    ) ~= nil
+end
+
+print("")
+print("================================================")
+print("         CHROMA RELATION FINDER")
+print("================================================")
+
+--========================================================
+-- 1. IN CẤU TRÚC CHROMA/GODLY TRONG BOX
+--========================================================
+
+for boxId, boxData in pairs(MysteryBox) do
+
+    if stopped then
+        return
+    end
+
+    if type(boxData) == "table" then
+
+        local hasGodly = boxData.Godly ~= nil
+        local hasGodlyTable = type(boxData.GodlyTable) == "table"
+        local hasChromaTable = type(boxData.ChromaTable) == "table"
+
+        if hasGodly
+        or hasGodlyTable
+        or hasChromaTable then
+
+            print("")
+            print("BOX:", boxId)
+
+            if hasGodly then
+                print(" Godly:", boxData.Godly)
+            end
+
+            if hasGodlyTable then
+                print(" GodlyTable:")
+
+                for _, item in ipairs(boxData.GodlyTable) do
+                    print("   ", item)
+                end
+            end
+
+            if hasChromaTable then
+                print(" ChromaTable:")
+
+                for _, item in ipairs(boxData.ChromaTable) do
+                    print("   ", item)
+                end
+            end
+        end
+    end
+end
+
+--========================================================
+-- 2. TÌM CHROMA TRONG ITEM DATABASE
+--========================================================
+
+print("")
+print("================================================")
+print("             ITEM DATABASE CHROMA")
+print("================================================")
+
+if type(Item) == "table" then
+
+    for itemId, data in pairs(Item) do
+
+        if stopped then
+            return
+        end
+
+        if type(data) == "table" then
+
+            local itemString =
+                tostring(itemId) .. " " .. tostring(data.Name)
+
+            if contains(itemString, "chroma") then
+
+                print("")
+                print("ITEM:", itemId)
+
+                for key, value in pairs(data) do
+
+                    if type(value) ~= "table" then
+
+                        print(
+                            " ",
+                            tostring(key),
+                            "=",
+                            tostring(value)
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+else
+    print("Sync.Item không phải table.")
+end
+
+print("")
+print("================================================")
+print("[ChromaFinder] Hoàn tất.")
+print("================================================")
