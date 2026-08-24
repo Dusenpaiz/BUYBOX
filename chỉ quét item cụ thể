@@ -1,0 +1,189 @@
+--========================================================
+-- SYNC ITEM KEY CHECKER
+-- Kiểm tra trực tiếp các key trong Sync.Item
+--========================================================
+
+pcall(function()
+    if _G.SyncItemKeyChecker_Stop then
+        _G.SyncItemKeyChecker_Stop()
+    end
+end)
+
+local stopped = false
+
+_G.SyncItemKeyChecker_Stop = function()
+    stopped = true
+end
+
+--========================================================
+-- SERVICES
+--========================================================
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Database = ReplicatedStorage:WaitForChild("Database")
+
+local Sync = require(
+    Database:WaitForChild("Sync")
+)
+
+local Item = Sync.Item
+
+if type(Item) ~= "table" then
+    warn("[SyncItem] Sync.Item không phải table")
+    return
+end
+
+--========================================================
+-- TEST IDS
+--========================================================
+
+local TEST_IDS = {
+    "Clown_G",
+    "Shaded",
+    "Lovely",
+    "Leaf",
+    "Biogun",
+    "Graffiti",
+    "HighTech",
+    "Nightfire",
+    "DeepSea",
+    "Splash_G",
+
+    "Lightbringer",
+    "Darkbringer",
+    "ChromaLightbringer",
+    "ChromaDarkbringer",
+
+    "Tides",
+    "TidesChroma",
+    "Luger",
+    "LugerChroma",
+    "Gemstone",
+    "GemstoneChroma",
+}
+
+--========================================================
+-- CHECK DIRECT KEY
+--========================================================
+
+local function printItem(key, data)
+
+    print("")
+    print("========================================")
+    print("KEY:", key)
+
+    if data == nil then
+        print("Không tồn tại trực tiếp trong Sync.Item")
+        print("========================================")
+        return
+    end
+
+    print("FOUND")
+    print("Class:", type(data))
+
+    if type(data) == "table" then
+
+        for name, value in pairs(data) do
+
+            if type(value) ~= "table" then
+                print(
+                    tostring(name),
+                    "=",
+                    tostring(value)
+                )
+            else
+                print(
+                    tostring(name),
+                    "= {TABLE}"
+                )
+            end
+        end
+
+    else
+
+        print("VALUE:", tostring(data))
+
+    end
+
+    print("========================================")
+end
+
+--========================================================
+-- START
+--========================================================
+
+print("")
+print("================================================")
+print("          SYNC ITEM KEY CHECKER")
+print("================================================")
+print("Tổng key Sync.Item:", #TEST_IDS)
+print("")
+
+for _, id in ipairs(TEST_IDS) do
+
+    if stopped then
+        return
+    end
+
+    printItem(
+        id,
+        Item[id]
+    )
+end
+
+--========================================================
+-- TÌM THEO ItemID / ItemName NẾU KEY KHÔNG KHỚP
+--========================================================
+
+print("")
+print("================================================")
+print("     SEARCH BY ItemID / ItemName")
+print("================================================")
+
+for _, target in ipairs(TEST_IDS) do
+
+    if stopped then
+        return
+    end
+
+    local found = 0
+
+    for key, data in pairs(Item) do
+
+        if type(data) == "table" then
+
+            local itemID = data.ItemID
+            local itemName = data.ItemName
+
+            if tostring(itemID) == target
+            or tostring(itemName) == target
+            or tostring(key) == target then
+
+                found += 1
+
+                print("")
+                print("TARGET:", target)
+                print("KEY:", key)
+                print("ItemID:", tostring(itemID))
+                print("ItemName:", tostring(itemName))
+                print("Rarity:", tostring(data.Rarity))
+                print("Chroma:", tostring(data.Chroma))
+                print("--------------------------------")
+            end
+        end
+    end
+
+    if found == 0 then
+        print(
+            "TARGET:",
+            target,
+            "-> không tìm thấy"
+        )
+    end
+end
+
+print("")
+print("================================================")
+print("[SyncItemKeyChecker] Hoàn tất.")
+print("================================================")
