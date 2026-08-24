@@ -1,0 +1,189 @@
+--========================================================
+-- BOX DATABASE FINDER
+-- Tìm bảng dữ liệu chứa item của các MysteryBox
+-- Tự dừng bản cũ
+--========================================================
+
+pcall(function()
+    if _G.BoxDatabaseFinder_Stop then
+        _G.BoxDatabaseFinder_Stop()
+    end
+end)
+
+local stopped = false
+
+_G.BoxDatabaseFinder_Stop = function()
+    stopped = true
+end
+
+--========================================================
+-- SERVICES
+--========================================================
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Database =
+    ReplicatedStorage:WaitForChild("Database")
+
+local Sync =
+    require(Database:WaitForChild("Sync"))
+
+--========================================================
+-- BOX IDS
+--========================================================
+
+local BOX_IDS = {
+    "KnifeBox1",
+    "KnifeBox2",
+    "KnifeBox3",
+    "KnifeBox4",
+    "KnifeBox5",
+
+    "GunBox1",
+    "GunBox2",
+    "GunBox3",
+
+    "MysteryBox1",
+    "MysteryBox2",
+
+    "MLG Box",
+    "Summer2026Box",
+}
+
+local function isBoxId(value)
+    value = tostring(value)
+
+    for _, boxId in ipairs(BOX_IDS) do
+        if value == boxId then
+            return true
+        end
+    end
+
+    return false
+end
+
+--========================================================
+-- TABLE SCANNER
+--========================================================
+
+local function scanTable(tbl, path, visited)
+
+    if stopped then
+        return
+    end
+
+    if type(tbl) ~= "table" then
+        return
+    end
+
+    visited = visited or {}
+
+    if visited[tbl] then
+        return
+    end
+
+    visited[tbl] = true
+
+    for key, value in pairs(tbl) do
+
+        if stopped then
+            return
+        end
+
+        local keyString = tostring(key)
+
+        -- Nếu key chính là tên box
+        if isBoxId(keyString) then
+
+            print("")
+            print("========================================")
+            print("FOUND BOX DATA")
+            print("Box :", keyString)
+            print("Path:", path)
+            print("========================================")
+
+            if type(value) == "table" then
+
+                for k, v in pairs(value) do
+
+                    if type(v) ~= "table" then
+
+                        print(
+                            tostring(k),
+                            "=",
+                            tostring(v)
+                        )
+
+                    else
+
+                        print(
+                            tostring(k),
+                            "= {TABLE}"
+                        )
+
+                        -- In thêm 1 cấp
+                        for k2, v2 in pairs(v) do
+                            print(
+                                "   ",
+                                tostring(k2),
+                                "=",
+                                tostring(v2)
+                            )
+                        end
+                    end
+                end
+
+            else
+
+                print(
+                    "VALUE:",
+                    tostring(value)
+                )
+
+            end
+
+            print("========================================")
+        end
+
+        -- Nếu value là table thì tiếp tục tìm
+        if type(value) == "table" then
+
+            scanTable(
+                value,
+                path .. "." .. keyString,
+                visited
+            )
+        end
+    end
+end
+
+--========================================================
+-- SCAN SYNC TABLES
+--========================================================
+
+print("")
+print("================================================")
+print("          BOX DATABASE FINDER")
+print("================================================")
+
+for name, value in pairs(Sync) do
+
+    if stopped then
+        return
+    end
+
+    if type(value) == "table" then
+
+        print("[SCAN TABLE]", name)
+
+        scanTable(
+            value,
+            "Sync." .. tostring(name)
+        )
+    end
+end
+
+print("")
+print("================================================")
+print("[BoxDatabaseFinder] Hoàn tất.")
+print("================================================")
