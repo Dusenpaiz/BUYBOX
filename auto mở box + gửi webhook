@@ -44,8 +44,7 @@ local WEBHOOK_URL = "https://discord.com/api/webhooks/1533220659403034924/fj5Zg3
 
 -- Chỉ gửi khi rarity là 2 loại này
 local SEND_RARITIES = {
-    Godly = true,
-    Legendary = true
+    Godly = true
 }
 
 --========================================================
