@@ -1,0 +1,93 @@
+--========================================================
+-- OPEN BOX + RARITY
+-- OpenCrate -> Sync.Item -> Rarity
+-- Tự dừng bản cũ
+--========================================================
+
+pcall(function()
+    if _G.OpenCrateRarity_FinalStop then
+        _G.OpenCrateRarity_FinalStop()
+    end
+end)
+
+local stopped = false
+
+_G.OpenCrateRarity_FinalStop = function()
+    stopped = true
+end
+
+--========================================================
+-- SERVICES
+--========================================================
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Database = ReplicatedStorage:WaitForChild("Database")
+
+local Sync = require(
+    Database:WaitForChild("Sync")
+)
+
+local Shop = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("Shop")
+
+local OpenCrate = Shop:WaitForChild("OpenCrate")
+
+--========================================================
+-- OPEN BOX
+--========================================================
+
+print("========================================")
+print("[BoxRarity] Đang mở MysteryBox2...")
+print("========================================")
+
+local ok, result = pcall(function()
+
+    return OpenCrate:InvokeServer(
+        "Summer2026Box",
+        "MysteryBox",
+        "SummerKey2026"
+    )
+
+end)
+
+if not ok then
+
+    print("[BoxRarity] OpenCrate lỗi:", result)
+    return
+
+end
+
+if stopped then
+    return
+end
+
+--========================================================
+-- RESULT
+--========================================================
+
+local itemKey = tostring(result)
+
+local itemData = Sync.Item[itemKey]
+
+print("")
+print("========================================")
+print("              BOX RESULT")
+print("========================================")
+print("Item Key:", itemKey)
+
+if not itemData then
+
+    print("Rarity: Không tìm thấy dữ liệu Item")
+
+else
+
+    print("Item Name:", tostring(itemData.ItemName))
+    print("Item Type:", tostring(itemData.ItemType))
+    print("Rarity:", tostring(itemData.Rarity))
+    print("Chroma:", tostring(itemData.Chroma))
+
+end
+
+print("========================================")
