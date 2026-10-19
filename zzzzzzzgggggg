@@ -1,1 +1,325 @@
 
+--========================================================
+-- HALLOWEEN BOX AUTO OPENER + DISCORD WEBHOOK
+-- Webhook chỉ gửi: Tên account + Tên item
+-- Tự dừng phiên bản cũ
+--========================================================
+
+--========================================================
+-- STOP OLD VERSION
+--========================================================
+
+pcall(function()
+    if type(_G.AutoBoxWebhook_Stop) == "function" then
+        _G.AutoBoxWebhook_Stop()
+    end
+end)
+
+local stopped = false
+
+_G.AutoBoxWebhook_Stop = function()
+    stopped = true
+end
+
+--========================================================
+-- CONFIG
+--========================================================
+
+local BOX_ID = "Halloween2026Box"
+local CURRENCY = "Candies2026"
+local OPEN_INTERVAL = 10
+
+-- Dán webhook URL MỚI của bạn tại đây.
+-- Không sử dụng lại URL webhook đã bị lộ.
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1533220659403034924/fj5Zg3ZWP3kC5W4VNUz-Ci9WpJW8Bb35o3B2vLIjaD1LXfkxHQmIpHcBiCjsCRGnIwvX"
+
+--========================================================
+-- ITEM KEY TARGETS
+--========================================================
+
+local TARGET_ITEMS = {
+    ["Bombs_G_2026"] = true,
+    ["Embergun_G_2026"] = true,
+    ["Embersickle"] = true,
+    ["EmbersickleChroma"] = true
+}
+
+--========================================================
+-- SERVICES
+--========================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local Shop = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("Shop")
+
+local OpenCrate = Shop:WaitForChild("OpenCrate")
+
+--========================================================
+-- DETECT HTTP REQUEST FUNCTION
+--========================================================
+
+local requestFunction
+
+if type(request) == "function" then
+    requestFunction = request
+
+elseif type(http_request) == "function" then
+    requestFunction = http_request
+
+elseif type(syn) == "table"
+    and type(syn.request) == "function" then
+
+    requestFunction = function(options)
+        return syn.request(options)
+    end
+
+elseif type(http) == "table"
+    and type(http.request) == "function" then
+
+    requestFunction = function(options)
+        return http.request(options)
+    end
+end
+
+--========================================================
+-- EXTRACT ITEM KEY
+--========================================================
+
+local function extractItemKey(result)
+    if type(result) == "string"
+        or type(result) == "number" then
+
+        return tostring(result)
+    end
+
+    if type(result) == "table" then
+        local possibleFields = {
+            "ItemKey",
+            "itemKey",
+            "Item",
+            "item",
+            "Key",
+            "key"
+        }
+
+        for _, field in ipairs(possibleFields) do
+            local value = result[field]
+
+            if type(value) == "string"
+                or type(value) == "number" then
+
+                return tostring(value)
+            end
+        end
+
+        if type(result[1]) == "string"
+            or type(result[1]) == "number" then
+
+            return tostring(result[1])
+        end
+    end
+
+    return nil
+end
+
+--========================================================
+-- SEND WEBHOOK
+-- Chỉ gửi tên account và item key
+--========================================================
+
+
+local function sendItemWebhook(itemKey)
+    if stopped then
+        return
+    end
+
+    if not requestFunction then
+        warn("[ItemWebhook] Executor không hỗ trợ HTTP request.")
+        return
+    end
+
+    local accountName = LocalPlayer.Name
+    local displayName = LocalPlayer.DisplayName
+
+    -- Chỉ ping everyone với hai item được chọn.
+  local shouldPing =
+    itemKey == "Embersickle"
+    or itemKey == "EmbersickleChroma"
+    or itemKey == "Embergun_G_2026"
+
+    local message =
+        "Account: " .. displayName
+        .. " (@" .. accountName .. ")"
+        .. "\nItem: " .. itemKey
+
+    if shouldPing then
+        message = "@everyone\n" .. message
+    end
+
+    local payload = {
+        content = message,
+
+        allowed_mentions = {
+            parse = shouldPing and {"everyone"} or {}
+        }
+    }
+
+    local encoded, body = pcall(function()
+        return HttpService:JSONEncode(payload)
+    end)
+
+    if not encoded then
+        warn("[ItemWebhook] JSON error:", tostring(body))
+        return
+    end
+
+    local requestOK, response = pcall(function()
+        return requestFunction({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = body
+        })
+    end)
+
+    if not requestOK then
+        warn("[ItemWebhook] Request failed:", tostring(response))
+        return
+    end
+
+    if type(response) ~= "table" then
+        warn("[ItemWebhook] Response không hợp lệ:", tostring(response))
+        return
+    end
+
+    local rawStatus = response.StatusCode or response.Status
+    local statusCode = tonumber(rawStatus)
+
+    if not statusCode and rawStatus ~= nil then
+        statusCode = tonumber(tostring(rawStatus):match("(%d%d%d)"))
+    end
+
+    if statusCode and statusCode >= 200 and statusCode < 300 then
+        print("[ItemWebhook] SENT", itemKey, "HTTP:", statusCode)
+    else
+        warn("[ItemWebhook] HTTP ERROR:", tostring(statusCode),
+            tostring(response.Body or ""))
+    end
+end
+
+--========================================================
+-- OPEN BOX
+--========================================================
+
+local opening = false
+
+local function openBox()
+    if stopped or opening then
+        return
+    end
+
+    opening = true
+
+    local success, result = pcall(function()
+        return OpenCrate:InvokeServer(
+            BOX_ID,
+            "MysteryBox",
+            CURRENCY
+        )
+    end)
+
+    if stopped then
+        opening = false
+        return
+    end
+
+    if not success then
+        warn(
+            "[ItemWebhook] OpenCrate error:",
+            tostring(result)
+        )
+
+        opening = false
+        return
+    end
+
+    if result == nil or result == false then
+        warn("[ItemWebhook] Không nhận được kết quả mở box.")
+        opening = false
+        return
+    end
+
+    local itemKey = extractItemKey(result)
+
+    if not itemKey then
+        warn(
+            "[ItemWebhook] Không đọc được item key.",
+            "| Result type:", typeof(result),
+            "| Result:", tostring(result)
+        )
+
+        opening = false
+        return
+    end
+
+    print("[ItemWebhook] Item nhận được:", itemKey)
+
+    -- Chỉ gửi webhook khi item key khớp chính xác.
+    if TARGET_ITEMS[itemKey] then
+        print("[ItemWebhook] TARGET FOUND:", itemKey)
+
+        sendItemWebhook(itemKey)
+    end
+
+    opening = false
+end
+
+--========================================================
+-- START
+--========================================================
+
+print("========================================")
+print("[ItemWebhook] STARTED")
+print("[ItemWebhook] Box:", BOX_ID)
+print("[ItemWebhook] Currency:", CURRENCY)
+print("[ItemWebhook] Interval:", OPEN_INTERVAL)
+print("[ItemWebhook] Target item count:", 8)
+print(
+    "[ItemWebhook] HTTP support:",
+    requestFunction ~= nil
+)
+
+if WEBHOOK_URL == ""
+    or WEBHOOK_URL == "PASTE_NEW_DISCORD_WEBHOOK_URL_HERE" then
+
+    warn("[ItemWebhook] Hãy dán webhook URL mới vào CONFIG.")
+end
+
+print("========================================")
+
+while not stopped do
+    local startTime = os.clock()
+
+    local ok, err = pcall(openBox)
+
+    if not ok then
+        warn("[ItemWebhook] Unexpected error:", tostring(err))
+        opening = false
+    end
+
+    while not stopped
+        and os.clock() - startTime < OPEN_INTERVAL do
+
+        task.wait(0.2)
+    end
+end
+
+print("[ItemWebhook] Đã dừng.")
