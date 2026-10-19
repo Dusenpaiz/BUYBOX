@@ -133,15 +133,9 @@ end
 -- Chỉ gửi tên account và item key
 --========================================================
 
+
 local function sendItemWebhook(itemKey)
     if stopped then
-        return
-    end
-
-    if WEBHOOK_URL == ""
-        or WEBHOOK_URL == "PASTE_NEW_DISCORD_WEBHOOK_URL_HERE" then
-
-        warn("[ItemWebhook] Chưa nhập webhook URL.")
         return
     end
 
@@ -153,17 +147,26 @@ local function sendItemWebhook(itemKey)
     local accountName = LocalPlayer.Name
     local displayName = LocalPlayer.DisplayName
 
-    -- Nội dung Discord chỉ gồm account và item.
+    -- Chỉ ping everyone với hai item được chọn.
+  local shouldPing =
+    itemKey == "Embersickle"
+    or itemKey == "EmbersickleChroma"
+    or itemKey == "Embergun_G_2026"
+
     local message =
         "Account: " .. displayName
         .. " (@" .. accountName .. ")"
         .. "\nItem: " .. itemKey
 
+    if shouldPing then
+        message = "@everyone\n" .. message
+    end
+
     local payload = {
         content = message,
 
         allowed_mentions = {
-            parse = {}
+            parse = shouldPing and {"everyone"} or {}
         }
     }
 
@@ -180,28 +183,20 @@ local function sendItemWebhook(itemKey)
         return requestFunction({
             Url = WEBHOOK_URL,
             Method = "POST",
-
             Headers = {
                 ["Content-Type"] = "application/json"
             },
-
             Body = body
         })
     end)
 
     if not requestOK then
-        warn(
-            "[ItemWebhook] Request failed:",
-            tostring(response)
-        )
+        warn("[ItemWebhook] Request failed:", tostring(response))
         return
     end
 
     if type(response) ~= "table" then
-        warn(
-            "[ItemWebhook] Response không hợp lệ:",
-            tostring(response)
-        )
+        warn("[ItemWebhook] Response không hợp lệ:", tostring(response))
         return
     end
 
@@ -209,29 +204,14 @@ local function sendItemWebhook(itemKey)
     local statusCode = tonumber(rawStatus)
 
     if not statusCode and rawStatus ~= nil then
-        statusCode = tonumber(
-            tostring(rawStatus):match("(%d%d%d)")
-        )
+        statusCode = tonumber(tostring(rawStatus):match("(%d%d%d)"))
     end
 
     if statusCode and statusCode >= 200 and statusCode < 300 then
-        print(
-            "[ItemWebhook] SENT",
-            "| Account:", accountName,
-            "| Item:", itemKey,
-            "| HTTP:", statusCode
-        )
-    elseif statusCode then
-        warn(
-            "[ItemWebhook] HTTP ERROR:",
-            statusCode,
-            "| Response:",
-            tostring(response.Body or "")
-        )
+        print("[ItemWebhook] SENT", itemKey, "HTTP:", statusCode)
     else
-        warn(
-            "[ItemWebhook] Không xác minh được HTTP status."
-        )
+        warn("[ItemWebhook] HTTP ERROR:", tostring(statusCode),
+            tostring(response.Body or ""))
     end
 end
 
