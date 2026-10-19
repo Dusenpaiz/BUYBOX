@@ -37,6 +37,12 @@ local Boxes = {
 
     {Name = "MLG Box", ID = "MLG Box"},
 
+
+{
+    Name = "Halloween 2026 Box",
+    ID = "Halloween2026Box"
+},
+
     {
         Name = "Summer 2026 Box",
         ID = "Summer2026Box",
@@ -252,7 +258,8 @@ local currencies = {
     "Coins",
     "Gems",
     "Key",
-    "SummerKey2026"
+    "SummerKey2026",
+    "Candies2026"
 }
 
 local currencyIndex = 1
