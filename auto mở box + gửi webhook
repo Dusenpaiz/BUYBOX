@@ -38,6 +38,7 @@ local WEBHOOK_URL = "https://discord.com/api/webhooks/1533220659403034924/fj5Zg3
 --========================================================
 
 local TARGET_ITEMS = {
+    ["Bombs_G_2026"] = true,
     ["Embergun_G_2026"] = true,
     ["Embersickle"] = true,
     ["EmbersickleChroma"] = true
