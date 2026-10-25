@@ -27,7 +27,7 @@ end
 
 local BOX_ID = "Halloween2026Box"
 local CURRENCY = "Candies2026"
-local OPEN_INTERVAL = 10
+local OPEN_INTERVAL = 1
 
 -- Dán webhook URL MỚI của bạn tại đây.
 -- Không sử dụng lại URL webhook đã bị lộ.
